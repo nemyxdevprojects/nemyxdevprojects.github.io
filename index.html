@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Minecraft Server Status Terminal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@babel/standalone@7.24.9/babel.min.js"></script>
+    <script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@18.3.1",
+    "react-dom/client": "https://esm.sh/react-dom@18.3.1/client",
+    "@google/genai": "https://esm.sh/@google/genai@0.14.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.1.1/",
+    "react/": "https://esm.sh/react@^19.1.1/"
+  }
+}
+</script>
+  <link rel="stylesheet" href="/index.css">
+</head>
+  <body class="bg-black text-green-400 font-mono">
+    <div id="root"></div>
+    <script type="text/babel" data-type="module">
+      // All application code is bundled here to run in the browser from a single file.
+      // External dependencies are loaded via the importmap above.
+
+      import React, { useState, useRef, useEffect, useCallback } from 'react';
+      import ReactDOM from 'react-dom/client';
+      import { GoogleGenAI } from "@google/genai";
+
+      // ===== FROM services/minecraftService.ts =====
+      const fetchServerStatus = async (address) => {
+        try {
+          const response = await fetch(`https://api.mcsrvstat.us/3/${address}`);
+          if (!response.ok) {
+            throw new Error(`API request failed with status ${response.status}`);
+          }
+          const data = await response.json();
+          
+          if (data && typeof data.online !== 'undefined') {
+            return data;
+          } else {
+            throw new Error('Invalid API response format.');
+          }
+        } catch (error) {
+          console.error('Failed to fetch server status:', error);
+          throw new Error(`Could not fetch server status for ${address}. Please check the address and try again.`);
+        }
+      };
+
+      // ===== FROM services/geminiService.ts =====
+      const describeServer = async (serverData, apiKey) => {
+          if (!apiKey) {
+              throw new Error('API key not set. Use \'key <your_api_key>\' to set it.');
+          }
+          
+          const ai = new GoogleGenAI({ apiKey });
+
+          const { motd, players, version, whitelist } = serverData;
+        
+          const serverInfo = `
+            - Message of the Day (MOTD): ${motd?.clean?.join(' ') || 'Not available'}
+            - Players: ${players?.online ?? 'N/A'} / ${players?.max ?? 'N/A'}
+            - Version: ${version || 'Not available'}
+            - Whitelisted: ${whitelist ? 'Yes' : 'No'}
+          `.trim();
+
+          const prompt = `
+            You are a Minecraft enthusiast who writes exciting server reviews.
+            Based on the following Minecraft server information, write a short, engaging description for a player looking for a new server to join.
+            Be creative and highlight the key features mentioned in the data. Make it sound appealing.
+            Do not repeat the raw data, but interpret it. For example, instead of "Players: 100/200", say "A bustling server with a large community!".
+            Generate only the description text.
+
+            Server Data:
+            ${serverInfo}
+          `;
+
+          try {
+            const response = await ai.models.generateContent({
+                model: 'gemini-2.5-flash',
+                contents: prompt,
+            });
+            return response.text;
+          } catch (error) {
+            console.error('Gemini API call failed:', error);
+            throw new Error('Failed to generate AI description. The AI might be temporarily unavailable or the API key is invalid.');
+          }
+      };
+
+      // ===== FROM components/TerminalOutput.tsx =====
+      const OutputLine = ({ item }) => {
+        switch (item.type) {
+          case 'input':
+            return (
+              <div className="flex">
+                <span className="flex-shrink-0">guest@terminal:~$ </span>
+                <p className="pl-2">{item.content}</p>
+              </div>
+            );
+          case 'error':
+            return <p className="text-red-500">Error: {item.content}</p>;
+          case 'motd':
+            return <pre className="whitespace-pre-wrap text-cyan-400">{item.content}</pre>;
+          case 'system':
+            return <p className="text-yellow-400">{item.content}</p>;
+          case 'help':
+            return <p className="text-blue-400">{item.content}</p>;
+          case 'output':
+          default:
+            return <p>{item.content}</p>;
+        }
+      };
+
+      const TerminalOutput = ({ history }) => {
+        return (
+          <div className="flex-grow">
+            {history.map((item, index) => (
+              <OutputLine key={index} item={item} />
+            ))}
+          </div>
+        );
+      };
+
+      // ===== FROM components/TerminalInput.tsx =====
+      const TerminalInput = ({ command, onCommandChange, onCommandSubmit, inputRef, isLoading }) => {
+        return (
+          <form onSubmit={onCommandSubmit} className="flex w-full">
+            <label htmlFor="command-input" className="flex-shrink-0 text-green-400">
+              guest@terminal:~$ 
+            </label>
+            <input
+              ref={inputRef}
+              id="command-input"
+              type="text"
+              value={command}
+              onChange={(e) => onCommandChange(e.target.value)}
+              className="flex-grow pl-2 bg-transparent border-none outline-none text-green-400 disabled:text-gray-500"
+              autoFocus
+              autoComplete="off"
+              disabled={isLoading}
+            />
+            {isLoading && <div className="w-4 h-4 border-2 border-green-400 border-t-transparent rounded-full animate-spin"></div>}
+          </form>
+        );
+      };
+      
+      // ===== FROM components/Terminal.tsx =====
+      const welcomeMessage = [
+          { type: 'system', content: 'Minecraft Server Status Terminal v1.0' },
+          { type: 'system', content: 'Type "help" to see a list of available commands.' },
+          { type: 'output', content: '' }
+      ];
+
+      const helpContent = [
+          { type: 'help', content: 'Available commands:' },
+          { type: 'output', content: '  fetch <server_address>    - Get status of a Minecraft server.' },
+          { type: 'output', content: '  describe <server_address>  - Get an AI-generated server description.' },
+          { type: 'output', content: '  key <api_key>            - Set the API key for the "describe" command.' },
+          { type: 'output', content: '  help                       - Shows this help message.' },
+          { type: 'output', content: '  clear                      - Clears the terminal screen.' },
+      ];
+
+      const Terminal = () => {
+          const [history, setHistory] = useState(welcomeMessage);
+          const [command, setCommand] = useState('');
+          const [isLoading, setIsLoading] = useState(false);
+          const [apiKey, setApiKey] = useState(null);
+          const inputRef = useRef(null);
+          const bottomRef = useRef(null);
+
+          const scrollToBottom = () => {
+              bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+          };
+
+          useEffect(() => {
+              scrollToBottom();
+          }, [history]);
+
+          useEffect(() => {
+              inputRef.current?.focus();
+          }, []);
+
+          const addHistory = useCallback((...items) => {
+              setHistory(prev => [...prev, ...items]);
+          }, []);
+
+          const handleFetch = async (address) => {
+              if (!address) {
+                  addHistory({ type: 'error', content: 'Usage: fetch <server_address>' });
+                  return;
+              }
+              addHistory({ type: 'system', content: `Fetching data for ${address}...` });
+              try {
+                  const data = await fetchServerStatus(address);
+                  if (!data.online) {
+                      addHistory({ type: 'error', content: `Server ${data.hostname || address} is offline.` });
+                      return;
+                  }
+                  const output = [
+                      { type: 'output', content: `Status: Online` },
+                      { type: 'output', content: `Host: ${data.hostname || 'N/A'}` },
+                      { type: 'output', content: `Version: ${data.version || 'N/A'}` },
+                      { type: 'output', content: `Players: ${data.players?.online ?? 0} / ${data.players?.max ?? 0}` },
+                      { type: 'output', content: `Whitelisted: ${data.whitelist ? 'Yes' : 'No'}` },
+                  ];
+                  if (data.motd?.clean?.length) {
+                      output.push({ type: 'output', content: 'MOTD:' });
+                      output.push({ type: 'motd', content: data.motd.clean.join('\n') });
+                  }
+                  addHistory(...output);
+              } catch (error) {
+                  const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+                  addHistory({ type: 'error', content: errorMessage });
+              }
+          };
+          
+          const handleDescribe = async (address) => {
+              if (!address) {
+                  addHistory({ type: 'error', content: 'Usage: describe <server_address>' });
+                  return;
+              }
+              addHistory({ type: 'system', content: `Fetching data for ${address} to generate description...` });
+              let serverData;
+              try {
+                  serverData = await fetchServerStatus(address);
+                  if (!serverData.online) {
+                      addHistory({ type: 'error', content: `Cannot describe server ${serverData.hostname || address} because it is offline.` });
+                      return;
+                  }
+              } catch (error) {
+                  const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred during fetch.';
+                  addHistory({ type: 'error', content: errorMessage });
+                  return;
+              }
+          
+              addHistory({ type: 'system', content: 'AI is thinking... please wait.' });
+              try {
+                  const description = await describeServer(serverData, apiKey);
+                  addHistory({ type: 'output', content: 'AI-Generated Description:' }, { type: 'output', content: description });
+              } catch (error) {
+                  const errorMessage = error instanceof Error ? error.message : 'An unknown AI error occurred.';
+                  addHistory({ type: 'error', content: errorMessage });
+              }
+          };
+          
+
+          const handleCommandSubmit = async (e) => {
+              e.preventDefault();
+              if (isLoading || !command.trim()) {
+                  if(!command.trim()) addHistory({type: 'input', content: ''});
+                  return;
+              };
+
+              const trimmedCommand = command.trim();
+              addHistory({ type: 'input', content: trimmedCommand });
+              setCommand('');
+              setIsLoading(true);
+
+              const [cmd, ...args] = trimmedCommand.split(/\s+/);
+
+              switch (cmd.toLowerCase()) {
+                  case 'fetch':
+                      await handleFetch(args[0]);
+                      break;
+                  case 'describe':
+                      await handleDescribe(args[0]);
+                      break;
+                  case 'key':
+                      const newKey = args[0];
+                      if (!newKey) {
+                          addHistory({ type: 'error', content: 'Usage: key <api_key>' });
+                      } else {
+                          setApiKey(newKey);
+                          addHistory({ type: 'system', content: 'API key has been set.' });
+                      }
+                      break;
+                  case 'help':
+                      addHistory(...helpContent);
+                      break;
+                  case 'clear':
+                      setHistory([]);
+                      break;
+                  default:
+                      addHistory({ type: 'error', content: `command not found: ${cmd}` });
+              }
+
+              setIsLoading(false);
+              setTimeout(() => inputRef.current?.focus(), 0);
+          };
+
+          return (
+              <div className="flex flex-col h-full w-full p-4" onClick={() => inputRef.current?.focus()}>
+                  <TerminalOutput history={history} />
+                  <TerminalInput 
+                      command={command}
+                      onCommandChange={setCommand}
+                      onCommandSubmit={handleCommandSubmit}
+                      inputRef={inputRef}
+                      isLoading={isLoading}
+                  />
+                  <div ref={bottomRef} />
+              </div>
+          );
+      };
+
+      // ===== FROM App.tsx =====
+      const App = () => {
+        return (
+          <main className="h-screen w-screen overflow-y-auto">
+            <Terminal />
+          </main>
+        );
+      };
+
+      // ===== FROM index.tsx =====
+      const rootElement = document.getElementById('root');
+      if (!rootElement) {
+        throw new Error("Could not find root element to mount to");
+      }
+
+      const root = ReactDOM.createRoot(rootElement);
+      root.render(
+        <React.StrictMode>
+          <App />
+        </React.StrictMode>
+      );
+    </script>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>

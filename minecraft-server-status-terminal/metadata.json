@@ -1,0 +1,6 @@
+{
+  "name": "Minecraft Server Status Terminal",
+  "description": "A terminal-style application to fetch and get information about Minecraft servers using their address. Includes an AI-powered server description feature.",
+  "requestFramePermissions": [],
+  "prompt": ""
+}

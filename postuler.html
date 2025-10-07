@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nemyx Studios - Carrières</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f8ff; /* Bleu très clair */
+            color: #1a202c; /* Gris foncé */
+        }
+        .text-nemyx-blue {
+            color: #4564ed;
+        }
+        .bg-nemyx-blue {
+            background-color: #4564ed;
+        }
+        .bg-nemyx-dark-blue {
+            background-color: #2c46c0; /* Darker shade of the new blue */
+        }
+        .input-error {
+            border-color: #ef4444; /* Red border for errors */
+        }
+        .error-message {
+            color: #ef4444;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            font-weight: 500;
+        }
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 1rem 1.5rem;
+            border-radius: 9999px; /* Full rounded corners */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
+            display: none;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+            color: white;
+        }
+        .toast.success {
+            background-color: #16a34a; /* Green background */
+        }
+        .toast.error {
+            background-color: #ef4444; /* Red background */
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+    <header class="bg-nemyx-dark-blue text-white shadow-lg p-6">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-4">
+                <i class="fas fa-microchip text-3xl text-nemyx-blue"></i>
+                <h1 class="text-3xl font-bold">Nemyx Studios</h1>
+            </div>
+            <nav class="hidden md:flex space-x-8">
+                <a href="#offres" class="hover:text-nemyx-blue transition-colors duration-300">Offres de Carrières</a>
+                <a href="#formulaire" class="hover:text-nemyx-blue transition-colors duration-300">Postuler</a>
+            </nav>
+            <button class="md:hidden text-2xl"><i class="fas fa-bars"></i></button>
+        </div>
+    </header>
+
+    <main class="flex-grow container mx-auto p-4 md:p-8">
+        <!-- Section d'introduction -->
+        <section class="text-center my-12 md:my-20">
+            <h2 class="text-4xl md:text-6xl font-extrabold text-nemyx-dark-blue leading-tight mb-4">
+                Rejoignez la révolution technologique de Nemyx !
+            </h2>
+            <p class="text-lg md:text-xl max-w-3xl mx-auto text-gray-700">
+                Chez Nemyx Studios, nous repoussons les limites de l'innovation. Si vous êtes passionné par le code, les algorithmes complexes et la création de mondes numériques, venez façonner l'avenir avec nous.
+            </p>
+        </section>
+
+        <!-- Section des offres d'emploi -->
+        <section id="offres" class="bg-white rounded-2xl shadow-xl p-6 md:p-10 mb-12">
+            <h3 class="text-3xl font-bold text-nemyx-blue border-b-2 border-nemyx-blue pb-4 mb-8">
+                Postes à pourvoir
+            </h3>
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- Offre 1 -->
+                <div class="bg-gray-50 p-6 rounded-xl shadow-md transition-transform transform hover:scale-105">
+                    <h4 class="text-2xl font-semibold mb-2 text-nemyx-dark-blue">Développeur(se) de Réalité Augmentée</h4>
+                    <p class="text-sm text-gray-500 mb-4">Temps plein, sur site - Cyberville</p>
+                    <p class="mb-4">
+                        Créez des applications immersives et des interfaces qui fusionnent le réel et le virtuel. Votre travail sera au cœur de nos prochains projets.
+                    </p>
+                    <ul class="list-disc list-inside space-y-1 text-gray-600">
+                        <li>Maîtrise de C++, Python ou Rust.</li>
+                        <li>Expérience avec les frameworks AR (ARCore, ARKit).</li>
+                        <li>Capacité à résoudre des problèmes de spatialisation.</li>
+                    </ul>
+                </div>
+                <!-- Offre 2 -->
+                <div class="bg-gray-50 p-6 rounded-xl shadow-md transition-transform transform hover:scale-105">
+                    <h4 class="text-2xl font-semibold mb-2 text-nemyx-dark-blue">Architecte de Systèmes Quantiques</h4>
+                    <p class="text-sm text-gray-500 mb-4">Temps plein, à distance</p>
+                    <p class="mb-4">
+                        Concevez l'infrastructure de nos futurs serveurs. Vous gérerez des flux de données massifs et créerez des architectures robustes et sécurisées.
+                    </p>
+                    <ul class="list-disc list-inside space-y-1 text-gray-600">
+                        <li>Forte expérience en architecture de cloud (AWS, Azure, GCP).</li>
+                        <li>Compréhension des principes de la cryptographie quantique.</li>
+                        <li>Excellentes compétences en résolution de problèmes.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section du formulaire de candidature -->
+        <section id="formulaire" class="bg-white rounded-2xl shadow-xl p-6 md:p-10">
+            <h3 class="text-3xl font-bold text-nemyx-blue border-b-2 border-nemyx-blue pb-4 mb-8">
+                Formulaire de candidature
+            </h3>
+            <!-- REMARQUE IMPORTANTE : Remplacez cette URL par celle de votre Google Apps Script -->
+            <form class="space-y-6" id="applicationForm" action="VOTRE_URL_GOOGLE_APPS_SCRIPT_ICI">
+                <div>
+                    <label for="nom" class="block text-gray-700 font-medium mb-1">Nom complet</label>
+                    <input type="text" id="nom" name="nom" placeholder="Votre nom et prénom" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-nemyx-blue focus:border-transparent transition-colors">
+                    <div id="nom-error" class="error-message"></div>
+                </div>
+                <div>
+                    <label for="email" class="block text-gray-700 font-medium mb-1">Adresse e-mail</label>
+                    <input type="email" id="email" name="email" placeholder="Votre adresse e-mail" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-nemyx-blue focus:border-transparent transition-colors">
+                    <div id="email-error" class="error-message"></div>
+                </div>
+                <div>
+                    <label for="poste" class="block text-gray-700 font-medium mb-1">Poste souhaité</label>
+                    <select id="poste" name="poste" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-nemyx-blue focus:border-transparent transition-colors">
+                        <option value="">Sélectionnez un poste</option>
+                        <option value="developpeur_ar">Développeur(se) de Réalité Augmentée</option>
+                        <option value="architecte_quantique">Architecte de Systèmes Quantiques</option>
+                        <option value="autre">Autre (précisez dans votre message)</option>
+                    </select>
+                    <div id="poste-error" class="error-message"></div>
+                </div>
+                <div>
+                    <label for="portfolio" class="block text-gray-700 font-medium mb-1">Lien vers votre portfolio ou GitHub</label>
+                    <input type="url" id="portfolio" name="portfolio" placeholder="Ex: https://github.com/votre-nom" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-nemyx-blue focus:border-transparent transition-colors">
+                    <div id="portfolio-error" class="error-message"></div>
+                </div>
+                <div>
+                    <label for="message" class="block text-gray-700 font-medium mb-1">Message de motivation</label>
+                    <textarea id="message" name="message" rows="5" placeholder="Décrivez votre passion pour la tech et vos projets personnels" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-nemyx-blue focus:border-transparent transition-colors"></textarea>
+                    <div id="message-error" class="error-message"></div>
+                </div>
+                <button type="submit" class="w-full bg-nemyx-blue text-white py-3 rounded-lg font-bold hover:bg-nemyx-dark-blue transition-colors duration-300 shadow-md">
+                    Envoyer ma candidature
+                </button>
+            </form>
+        </section>
+    </main>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">
+        <span id="toast-message"></span>
+    </div>
+
+    <footer class="bg-gray-800 text-white text-center p-4 mt-12">
+        <p>ATTENTION: Cette page est fictive, c'est juste pour m'amuser, je ne recrute en aucun cas des gens</p>
+    </footer>
+
+    <script>
+        const form = document.getElementById('applicationForm');
+        const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toast-message');
+
+        function showToast(message, isSuccess) {
+            toastMessage.textContent = message;
+            toast.classList.remove('success', 'error');
+            toast.classList.add(isSuccess ? 'success' : 'error');
+            toast.style.display = 'flex';
+            
+            setTimeout(() => {
+                toast.style.opacity = '1';
+            }, 10);
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => {
+                    toast.style.display = 'none';
+                }, 500);
+            }, 3000);
+        }
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            // Clear previous error messages and styling
+            const errorMessages = document.querySelectorAll('.error-message');
+            errorMessages.forEach(el => el.textContent = '');
+            const inputs = form.querySelectorAll('input, select, textarea');
+            inputs.forEach(input => input.classList.remove('input-error'));
+
+            let formIsValid = true;
+            
+            // Validate all required fields and set specific error messages
+            const nomInput = document.getElementById('nom');
+            if (nomInput.value.trim() === '') {
+                nomInput.classList.add('input-error');
+                document.getElementById('nom-error').textContent = 'Veuillez saisir votre nom complet.';
+                formIsValid = false;
+            }
+
+            const emailInput = document.getElementById('email');
+            if (emailInput.value.trim() === '' || !emailInput.checkValidity()) {
+                emailInput.classList.add('input-error');
+                document.getElementById('email-error').textContent = 'Veuillez saisir une adresse e-mail valide.';
+                formIsValid = false;
+            }
+
+            const posteInput = document.getElementById('poste');
+            if (posteInput.value === '') {
+                posteInput.classList.add('input-error');
+                document.getElementById('poste-error').textContent = 'Veuillez sélectionner un poste.';
+                formIsValid = false;
+            }
+
+            const portfolioInput = document.getElementById('portfolio');
+            if (portfolioInput.value.trim() === '') {
+                portfolioInput.classList.add('input-error');
+                document.getElementById('portfolio-error').textContent = 'Veuillez fournir un lien vers votre portfolio.';
+                formIsValid = false;
+            }
+
+            const messageTextarea = document.getElementById('message');
+            if (messageTextarea.value.trim() === '') {
+                messageTextarea.classList.add('input-error');
+                document.getElementById('message-error').textContent = 'Veuillez écrire un message de motivation.';
+                formIsValid = false;
+            }
+
+            if (formIsValid) {
+                console.log('Formulaire valide, envoi des données...');
+                const formData = new FormData(form);
+                const scriptUrl = form.action;
+
+                fetch(scriptUrl, {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => {
+                    if (response.ok) {
+                        showToast('Candidature envoyée ! ✅', true);
+                        form.reset();
+                    } else {
+                        showToast('Erreur lors de l\'envoi. ❌', false);
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                    showToast('Erreur de connexion. ❌', false);
+                });
+            } else {
+                console.log('Formulaire invalide, veuillez corriger les erreurs.');
+                showToast('Veuillez corriger les erreurs. ❌', false);
+            }
+        });
+    </script>
+</body>
+</html>
